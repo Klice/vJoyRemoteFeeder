@@ -2,18 +2,18 @@ from time import sleep
 from controller import Controller
 from vjoy import VJoy
 
+vjoy = VJoy(1)
 
 def main():
-    controller = Controller("192.168.1.50")
+    controller = Controller()
     controller.register()
+    controller.listen(pressButtons)
 
-    vjoy = VJoy(1)
-    while True:
-        vjoy.set_btn(False, 3)
-        sleep(1)
-        vjoy.set_btn(True, 3)
-        sleep(1)
-
+def pressButtons(data):
+    buttons = data.split(",")
+    for button, state in enumerate(buttons):
+        vjoy.set_btn(int(state) == 1, button + 1)
+    sleep(20 / 1000)
 
 if __name__ == '__main__':
     main()
