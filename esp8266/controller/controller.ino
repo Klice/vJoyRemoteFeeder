@@ -11,20 +11,12 @@
 
 WiFiManager wifiManager;
 
-enum direction { CW, CCW, N };
-
-typedef struct {
-    int left;
-    int right;
-    direction state;
-} encoder;
-
 int prevButtonState[MAX_BUTTON_NUM];
 encoder prevEncoderState[MAX_ENCODERS_NUM];
 
 encoder encoders[MAX_ENCODERS_NUM];
 unsigned int buttons[MAX_BUTTON_NUM];
-unsigned int encoders_num = 1;
+unsigned int encoders_num = 0;
 unsigned int buttons_num = 0;
 
 unsigned long previousMillis = 0;
@@ -35,19 +27,17 @@ unsigned int listener_port;
 bool send_udp = false;
 
 void setup() {
-    encoders[0].left = 0;
-    encoders[0].right = 4;
-    encoders[0].state = direction::N;
     Serial.begin(115200);
     Serial.println("Starting initilization...");
     wifiManager.autoConnect();
     init_api(register_listener);
-    init_encoders();
     Serial.println("Initilization completed");
 }
 
 void init_buttons(unsigned int new_buttons[], unsigned int new_buttons_num) {
-    memcpy(buttons, new_buttons, sizeof(new_buttons));
+    Serial.println("Buttons initialization...");
+    Serial.println("Total buttons: " + String(new_buttons_num));
+    memcpy(buttons, new_buttons, sizeof(buttons));
     buttons_num = new_buttons_num;
     for (int i = 0; i < buttons_num; i++) {
         Serial.println("Button pin: " + String(buttons[i]));
@@ -56,7 +46,11 @@ void init_buttons(unsigned int new_buttons[], unsigned int new_buttons_num) {
     }
 }
 
-void init_encoders() {
+void init_encoders(encoder new_encoders[], unsigned int new_encoders_num) {
+    Serial.println("Encoders initialization...");
+    Serial.println("Total encoders: " + String(new_encoders_num));
+    memcpy(encoders, new_encoders, sizeof(encoders));
+    encoders_num = new_encoders_num;
     for (int i = 0; i < encoders_num; i++) {
         Serial.println("Encoder pin: " + String(encoders[i].left) + ',' + String(encoders[i].right));
         pinMode(encoders[i].left, INPUT_PULLUP);
@@ -182,12 +176,15 @@ direction getEncoderDirection(encoder curState, encoder privState) {
     return direction::N;
 }
 
-void register_listener(IPAddress ip, unsigned int port, unsigned int new_buttons[], unsigned int new_buttons_num) {
+void register_listener(IPAddress ip, unsigned int port, unsigned int new_buttons[], unsigned int new_buttons_num, encoder new_encoders[], unsigned int new_encoders_num) {
     Serial.println("Register listener: " + ip.toString() + ":" + port);
     listener_ip = ip;
     listener_port = port;
-    if (new_buttons[0] != NULL) {
+    if (new_buttons_num > 0) {
         init_buttons(new_buttons, new_buttons_num);
+    }
+    if (new_encoders_num > 0) {
+        init_encoders(new_encoders, new_encoders_num);
     }
     send_udp = true;
 }

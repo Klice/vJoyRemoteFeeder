@@ -25,7 +25,7 @@ void config_rest_server_routing(RegisterListenerCallback register_callback) {
     String post_body = http_rest_server.arg("plain");
     IPAddress ip;
     unsigned int buttons[5];
-    unsigned int buttons_num;
+    encoder encoders[5];
     DeserializationError error = deserializeJson(jsonBody, post_body);
     if (error) {
       http_rest_server.send(400);
@@ -33,8 +33,9 @@ void config_rest_server_routing(RegisterListenerCallback register_callback) {
       http_rest_server.send(200);
     }
     ip.fromString(jsonBody["udp_host"].as<String>());
-    buttons_num = jsonArray2Int(jsonBody["pins"]["buttons"].as<JsonArray>(), buttons);
-    register_callback(ip, (int)jsonBody["udp_port"], buttons, buttons_num);
+    unsigned int buttons_num = jsonArray2Int(jsonBody["pins"]["buttons"].as<JsonArray>(), buttons);
+    unsigned int encoders_num = jsonArray2Encoder(jsonBody["pins"]["encoders"].as<JsonArray>(), encoders);
+    register_callback(ip, (int)jsonBody["udp_port"], buttons, buttons_num, encoders, encoders_num);
   });
   http_rest_server.on("/index.html", HTTP_GET, []() {
       http_rest_server.send(200, "text/plain", "Hello World!");
@@ -45,9 +46,20 @@ void config_rest_server_routing(RegisterListenerCallback register_callback) {
 }
 
 
-unsigned int jsonArray2Int (JsonArray array, unsigned int * numbers) {
+unsigned int jsonArray2Int(JsonArray array, unsigned int * numbers) {
   for (int i = 0; i < array.size(); ++i) {
     numbers[i] = array[i].as<int>();
+  }
+  return array.size();
+}
+
+unsigned int jsonArray2Encoder(JsonArray array, encoder * encoders) {
+  for (int i = 0; i < array.size(); ++i) {
+    encoders[i] = {
+      array[i][0].as<int>(),
+      array[i][1].as<int>(),
+      direction::N
+    };
   }
   return array.size();
 }
