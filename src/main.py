@@ -4,9 +4,16 @@ from vjoy import VJoy
 
 vjoy = VJoy(1)
 
+controller_map = {
+    "buttons": [5],
+    "encoders": [
+        [0, 4]
+    ]
+}
+
 def main():
     controller = Controller()
-    controller.register()
+    controller.register(controller_map)
     controller.listen(pressButtons)
 
 def pressButtons(data):

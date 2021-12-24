@@ -1,4 +1,5 @@
 import socket
+import json
 import xml.etree.ElementTree as ET
 import urllib
 import urllib.request
@@ -9,15 +10,11 @@ from ssdp import SSDP
 class Controller:
     api_url = None
     ssdp_service_type = "ArduinoGameController"
-    upd_port = 6789
-    upd_host = None
 
-    def __init__(self, ip=None):
-        if ip:
-            self.api_url = "http://{ip}/register".format(ip=ip)
-        else:
-            self.api_url = self._discover()
-        self.upd_host = self._get_self_ip()
+    def __init__(self, ip=None, upd_port=6789, upd_host=None):
+        self.api_url = "http://{ip}/register".format(ip=ip) if ip else self._discover()
+        self.upd_port = upd_port
+        self.upd_host = upd_host if upd_host else self._get_self_ip()
 
     def _discover(self):
         ret = SSDP.discover(st=self.ssdp_service_type, retries=2)
@@ -26,7 +23,7 @@ class Controller:
 
         ssdp = ret[0]
         api_url = self._get_api_url(ssdp.location)
-        print("Discovered {} on: {}".format(self.ssdp_service_type, self.api_url))
+        print("Discovered {} on: {}".format(self.ssdp_service_type, api_url))
         return api_url
     
     def _get_api_url(self, url):
@@ -45,8 +42,13 @@ class Controller:
         s.close()
         return my_ip
 
-    def register(self):
-        req = urllib.request.Request("{url}register".format(url=self.api_url), data="{}:{}".format(self.upd_host, self.upd_port).encode('utf-8'))
+    def register(self, pin_map):
+        data = {
+            "udp_host": self.upd_host,
+            "udp_port": self.upd_port,
+            "pins": pin_map
+        }
+        req = urllib.request.Request("{url}register".format(url=self.api_url), data=json.dumps(data).encode('utf-8'))
         urllib.request.urlopen(req)
 
     def listen(self, callback):

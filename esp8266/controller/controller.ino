@@ -19,15 +19,13 @@ typedef struct {
     direction state;
 } encoder;
 
-
-
 int prevButtonState[MAX_BUTTON_NUM];
 encoder prevEncoderState[MAX_ENCODERS_NUM];
 
 encoder encoders[MAX_ENCODERS_NUM];
 unsigned int buttons[MAX_BUTTON_NUM];
 unsigned int encoders_num = 1;
-unsigned int buttons_num = 1;
+unsigned int buttons_num = 0;
 
 unsigned long previousMillis = 0;
 
@@ -40,18 +38,17 @@ void setup() {
     encoders[0].left = 0;
     encoders[0].right = 4;
     encoders[0].state = direction::N;
-
-    buttons[0] = 5;
     Serial.begin(115200);
     Serial.println("Starting initilization...");
     wifiManager.autoConnect();
     init_api(register_listener);
-    init_buttons();
     init_encoders();
     Serial.println("Initilization completed");
 }
 
-void init_buttons() {
+void init_buttons(unsigned int new_buttons[], unsigned int new_buttons_num) {
+    memcpy(buttons, new_buttons, sizeof(new_buttons));
+    buttons_num = new_buttons_num;
     for (int i = 0; i < buttons_num; i++) {
         Serial.println("Button pin: " + String(buttons[i]));
         pinMode(buttons[i], INPUT_PULLUP);
@@ -185,9 +182,12 @@ direction getEncoderDirection(encoder curState, encoder privState) {
     return direction::N;
 }
 
-void register_listener(IPAddress ip, unsigned int port) {
+void register_listener(IPAddress ip, unsigned int port, unsigned int new_buttons[], unsigned int new_buttons_num) {
     Serial.println("Register listener: " + ip.toString() + ":" + port);
     listener_ip = ip;
     listener_port = port;
+    if (new_buttons[0] != NULL) {
+        init_buttons(new_buttons, new_buttons_num);
+    }
     send_udp = true;
 }

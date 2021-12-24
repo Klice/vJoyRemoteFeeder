@@ -21,11 +21,20 @@ void config_rest_server_routing(RegisterListenerCallback register_callback) {
                           "Welcome to the ESP8266 Game Controller");
   });
   http_rest_server.on("/register", HTTP_POST, [register_callback]() {
+    StaticJsonDocument<500> jsonBody;
     String post_body = http_rest_server.arg("plain");
     IPAddress ip;
-    ip.fromString(getValue(post_body, ':', 0));
-    register_callback(ip, getValue(post_body, ':', 1).toInt());
-    http_rest_server.send(200);
+    unsigned int buttons[5];
+    unsigned int buttons_num;
+    DeserializationError error = deserializeJson(jsonBody, post_body);
+    if (error) {
+      http_rest_server.send(400);
+    } else {
+      http_rest_server.send(200);
+    }
+    ip.fromString(jsonBody["udp_host"].as<String>());
+    buttons_num = jsonArray2Int(jsonBody["pins"]["buttons"].as<JsonArray>(), buttons);
+    register_callback(ip, (int)jsonBody["udp_port"], buttons, buttons_num);
   });
   http_rest_server.on("/index.html", HTTP_GET, []() {
       http_rest_server.send(200, "text/plain", "Hello World!");
@@ -33,4 +42,12 @@ void config_rest_server_routing(RegisterListenerCallback register_callback) {
   http_rest_server.on("/description.xml", HTTP_GET, []() {
       SSDP.schema(http_rest_server.client());
   });
+}
+
+
+unsigned int jsonArray2Int (JsonArray array, unsigned int * numbers) {
+  for (int i = 0; i < array.size(); ++i) {
+    numbers[i] = array[i].as<int>();
+  }
+  return array.size();
 }

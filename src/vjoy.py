@@ -14,7 +14,7 @@ class VjdStat(Enum):
 
 class VJoy:
     def __init__(self, vjoy_interface):
-        self.vJoyLib = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + './vJoyInterface.dll')
+        self.vJoyLib = cdll.LoadLibrary(os.path.dirname(os.path.realpath(__file__)) + '/../vJoyInterface.dll')
         self.VJOY_INTERFACE = vjoy_interface
         self._chk_vjoy_enabled()
         self._chk_vjoy_status()
