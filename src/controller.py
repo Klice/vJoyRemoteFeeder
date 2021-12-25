@@ -51,13 +51,13 @@ class Controller:
         req = urllib.request.Request("{url}register".format(url=self.api_url), data=json.dumps(data).encode('utf-8'))
         urllib.request.urlopen(req)
 
-    def listen(self, callback):
+    def listen(self, callback, workers_pool):
         socket.setdefaulttimeout(None)
-        serverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        serverSock.bind(("0.0.0.0", self.upd_port))
+        server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server_sock.bind(("0.0.0.0", self.upd_port))
         try:
             while True:
-                data, _ = serverSock.recvfrom(1024)
-                callback(data.decode("utf-8"))
+                data, _ = server_sock.recvfrom(1024)
+                callback(data.decode("utf-8"), workers_pool)
         except KeyboardInterrupt:
             pass
