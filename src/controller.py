@@ -12,7 +12,7 @@ class Controller:
     ssdp_service_type = "ArduinoGameController"
 
     def __init__(self, ip=None, upd_port=6789, upd_host=None):
-        self.api_url = "http://{ip}/register".format(ip=ip) if ip else self._discover()
+        self.api_url = "http://{ip}/".format(ip=ip) if ip else self._discover()
         self.upd_port = upd_port
         self.upd_host = upd_host if upd_host else self._get_self_ip()
 

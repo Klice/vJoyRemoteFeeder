@@ -5,9 +5,11 @@ from vjoy import VJoy
 vjoy = VJoy(1)
 
 controller_map = {
-    "buttons": [5],
+    "buttons": [2],
     "encoders": [
-        [0, 4]
+        [1, 3],
+        [13, 14],
+        [4, 5]
     ]
 }
 
