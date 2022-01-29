@@ -1,5 +1,6 @@
 import queue
 import threading
+from gs_time import delayMicroseconds
 from time import sleep
 
 
@@ -28,9 +29,9 @@ class ButtonWorker(threading.Thread):
             if self.kill_flag:
                 break
             try:
-                button_id, state = self.queue.get_nowait()
+                button_id, state = self.queue.get(timeout=1)
                 self.vjoy.set_btn(int(state) == 1, button_id)
-                sleep(self.press_delay / 1000)
+                delayMicroseconds(self.press_delay * 1000)
                 self.queue.task_done()
             except queue.Empty:
                 pass

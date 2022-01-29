@@ -12,7 +12,7 @@ class Controller:
     ssdp_service_type = "ArduinoGameController"
 
     def __init__(self, ip=None, upd_port=6789, upd_host=None):
-        self.api_url = "http://{ip}/".format(ip=ip) if ip else self._discover()
+        self.api_url = f"http://{ip}/" if ip else self._discover()
         self.upd_port = upd_port
         self.upd_host = upd_host if upd_host else self._get_self_ip()
 
@@ -52,12 +52,13 @@ class Controller:
         urllib.request.urlopen(req)
 
     def listen(self, callback, workers_pool):
+        callback_state = None
         socket.setdefaulttimeout(None)
         server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         server_sock.bind(("0.0.0.0", self.upd_port))
         try:
             while True:
                 data, _ = server_sock.recvfrom(1024)
-                callback(data.decode("utf-8"), workers_pool)
+                callback_state = callback(data.decode("utf-8"), workers_pool, callback_state)
         except KeyboardInterrupt:
             pass
